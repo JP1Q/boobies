@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CAST | Native macOS Window Manager</title>
+  <link rel="icon" href="icon.png" />
+
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: { primary: '#528BFF' },
+          keyframes: {
+            blob: {
+              '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' },
+              '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+              '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+            }
+          },
+          animation: {
+            blob: 'blob 8s infinite'
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- AOS Animations -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+  
+  <!-- Custom Styles -->
+  <link href="style.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gradient-to-br from-[#21252B] to-[#282C34] text-gray-100 relative overflow-x-hidden">
+
+<!-- Navbar -->
+<header class="fixed w-full z-50 backdrop-blur-lg bg-[#21252B]/60">
+  <div class="max-w-7xl mx-auto flex items-center justify-between py-4 px-6">
+    <!-- Logo with icon -->
+    <div class="flex items-center space-x-3">
+      <img src="icon.png" alt="CAST Icon" class="w-6 h-6">
+      <span class="text-2xl font-bold uppercase tracking-wide text-white">CAST</span>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <nav class="hidden md:flex space-x-8 text-sm text-gray-300">
+      <a href="#welcome" class="hover:text-white transition">Welcome</a>
+      <a href="#features" class="hover:text-white transition">Features</a>
+      <a href="#showcase" class="hover:text-white transition">Showcase</a>
+      <a href="#changelog" class="hover:text-white transition">Changelog</a>
+    </nav>
+
+    <!-- Desktop Download Button with animated gradient -->
+    <div class="hidden md:block">
+      <button
+        class="backdrop-blur-lg
+               bg-gradient-to-r
+                 from-purple-400/80
+                 via-pink-400/80
+                 to-red-400/80
+               bg-[length:200%_200%]
+               animate-[gradient-pan_8s_ease_infinite]
+               text-white
+               px-4 py-2 rounded-lg
+               text-sm font-semibold
+               transition
+               inline-flex items-center justify-center
+               hover:scale-105 active:scale-95
+               hover:from-purple-500/40 
+               hover:via-pink-500/40 
+               hover:to-red-500/40"
+      >
+        <span>Download for Mac</span>
+        <img src="sequoia.png" alt="macOS Logo" class="w-4 h-4 ml-3">
+      </button>
+    </div>
+
+    <!-- Burger Button -->
+    <button id="nav-toggle" class="md:hidden flex flex-col justify-center items-center w-8 h-8 space-y-1.5">
+      <span class="block w-6 h-0.5 bg-white transition-transform duration-300 origin-center" id="bar1"></span>
+      <span class="block w-6 h-0.5 bg-white transition-opacity duration-300" id="bar2"></span>
+      <span class="block w-6 h-0.5 bg-white transition-transform duration-300 origin-center" id="bar3"></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  <nav id="mobile-menu" class="hidden flex-col bg-[#21252B]/70 backdrop-blur-lg text-white text-sm animate-slide-down">
+    <a href="#welcome" class="block px-6 py-3 hover:bg-white/10 transition">Welcome</a>
+    <a href="#features" class="block px-6 py-3 hover:bg-white/10 transition">Features</a>
+    <a href="#showcase" class="block px-6 py-3 hover:bg-white/10 transition">Showcase</a>
+    <a href="#changelog" class="block px-6 py-3 hover:bg-white/10 transition">Changelog</a>
+
+    <!-- Mobile Download Button -->
+    <div class="px-6 py-3">
+      <button class="backdrop-blur-lg bg-white/10 hover:bg-white/20 text-white w-full px-4 py-2 rounded-lg text-sm font-semibold transition inline-flex items-center justify-center hover:scale-105 active:scale-95">
+        <img src="sequoia.png" alt="macOS Logo" class="w-6 h-6 mr-2">
+        <span>Download for Mac</span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<!-- Hero / Welcome -->
+<section
+  id="welcome"
+  class="min-h-screen flex flex-col justify-center px-6 relative pt-32 md:pt-48"
+>
+  <!-- Animated Gradient Blob -->
+  <div class="absolute -top-32 -left-24 w-96 h-96 bg-gradient-to-br from-purple-600 to-indigo-500 rounded-full opacity-30 filter blur-3xl animate-blob"></div>
+
+  <!-- Animated Background -->
+  <div class="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 animate-gradient-x blur-2xl opacity-30"></div>
+
+  <!-- Content -->
+  <div class="relative z-10 max-w-7xl mx-auto w-full flex flex-col md:flex-row items-start">
+    
+    <!-- Left: Text Content -->
+    <div class="w-full md:w-1/2 text-left space-y-8 mt-12 md:mt-0">
+      <h1 class="text-5xl md:text-6xl font-extrabold leading-tight">
+        <span id="typewriter"></span>
+        <span id="cursor" class="inline-block w-2 h-8 bg-white animate-blink align-middle"></span>
+        <span class="text-primary">.</span>
+      </h1>
+      <p class="max-w-lg text-lg text-gray-300">
+        The ultimate solution for macOS window management — a taskbar-inspired overview, effortless switching, and powerful controls at your fingertips.
+      </p>
+    </div>
+
+    <!-- Right: Download + Compatibility -->
+    <div class="w-full md:w-1/2 flex justify-end">
+      <div class="inline-flex flex-col items-center md:items-end md:pr-6 mt-12 md:mt-16">
+        <!-- Group 1: download + compat, spaced 0.75rem apart -->
+        <div class="w-full space-y-3">
+          <!-- Download button -->
+          <button
+            id="hero-download"
+            class="backdrop-blur-lg group
+                   w-full px-4 py-4 bg-white/10 rounded-2xl
+                   text-xl font-semibold hover:bg-white/20 transition
+                   inline-flex justify-between items-center
+                   hover:scale-110 active:-translate-y-1 active:scale-x-90 active:scale-y-110"
+          >
+            <span>Download for Mac</span>
+            <span class="px-3 py-1 bg-white/20 rounded-md text-sm">v1.1</span>
+          </button>
+
+          <!-- Compatibility text + icon (right-aligned) -->
+          <div class="w-full flex justify-end items-center space-x-3 text-gray-400 text-sm">
+            <img src="sequoia.png" alt="macOS Logo" class="w-8 h-8 rounded-full">
+            <span>Compatible with macOS 13.0 up to macOS 15 Sequoia</span>
+          </div>
+        </div>
+
+        <!-- Group 2: only this button, with a custom top margin -->
+        <button
+          class="mt-3 px-3 py-1 bg-white/10 rounded-lg
+                 hover:bg-white/20 transition text-sm"
+        >
+          Other releases...
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Bento Boxes -->
+<section id="features" class="relative py-20">
+  <!-- Background Patterns -->
+  <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[length:16px_16px]"></div>
+  <div class="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(90deg,transparent,transparent 20px,rgba(255,255,255,0.03) 20px,rgba(255,255,255,0.03) 21px)]"></div>
+  
+  <!-- Secondary Blob Accent -->
+  <div class="absolute top-1/3 right-1/4 w-48 h-48 bg-gradient-to-br from-green-500 to-teal-400 rounded-full opacity-20 filter blur-2xl animate-blob animation-delay-2000"></div>
+
+  <div class="relative max-w-7xl mx-auto px-6">
+    <h2 class="text-4xl font-extrabold text-gray-100 text-center mb-12">Build the perfect tools.</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Feature Boxes -->
+      <div class="bg-[#21252B]/70 backdrop-blur-lg p-6 rounded-xl flex flex-col" data-aos="zoom-in">  
+        <img src="https://cdn.discordapp.com/attachments/1282244706075672586/1286794089391460372/shooter.gif?ex=68113de2&is=680fec62&hm=387c107718d21f249ef3c43a1dd38ea7212ef8a1bde7ffa413a6494093c50abe&" alt="Overview GIF" class="w-full h-40 object-cover rounded-lg mb-4" />
+        <h3 class="text-2xl font-semibold text-white mb-2">Optimal Overview</h3>
+        <p class="text-gray-400 flex-grow">Visualize all open windows in a seamless, translucent dock for swift context switching.</p>
+      </div>
+      <div class="bg-[#21252B]/70 backdrop-blur-lg p-6 rounded-xl flex flex-col" data-aos="zoom-in" data-aos-delay="100">
+        <img src="https://media.discordapp.net/attachments/1093053967589711933/1095947598319325255/image0-1-3-1.gif?ex=6811b8bd&is=6810673d&hm=c78f571fdee1da3ad7bf7f70ea109f33a48c623bf8a8797a868cc1a37480cfd9&" alt="Switching GIF" class="w-full h-40 object-cover rounded-lg mb-4" />
+        <h3 class="text-2xl font-semibold text-white mb-2">Effortless Switching</h3>
+        <p class="text-gray-400 flex-grow">Toggle between windows instantly using keyboard shortcuts or mouse clicks without delays.</p>
+      </div>
+      <div class="bg-[#21252B]/70 backdrop-blur-lg p-6 rounded-xl flex flex-col" data-aos="zoom-in" data-aos-delay="200">
+        <img src="https://cdn.discordapp.com/attachments/1015166839225057311/1325795651358818375/pepa_na_ome.gif?ex=681167ab&is=6810162b&hm=1d4ec51bd71c7c8310906d0386b9fa50a33c711ae48fbb9eed68c9cb06c5988f&" alt="Close & Minimize GIF" class="w-full h-40 object-cover rounded-lg mb-4" />
+        <h3 class="text-2xl font-semibold text-white mb-2">Close & Minimize</h3>
+        <p class="text-gray-400 flex-grow">Manage window states—close, minimize, and restore—directly from the CAST interface.</p>
+      </div>
+      <div class="bg-[#21252B]/70 backdrop-blur-lg p-6 rounded-xl flex flex-col" data-aos="zoom-in" data-aos-delay="300">
+        <img src="https://media.discordapp.net/attachments/774040897196392468/971410765703696396/image0.gif?ex=68118406&is=68103286&hm=34b98a4f212a98de5504eaa8778feef36011442895eefaef1cbe3cd234d89eda&" alt="Native Performance GIF" class="w-full h-40 object-cover rounded-lg mb-4" />
+        <h3 class="text-2xl font-semibold text-white mb-2">Native Performance</h3>
+        <p class="text-gray-400 flex-grow">Built in Swift with SwiftUI and AppKit for ultra-fast, low-latency responsiveness.</p>
+      </div>
+      <div class="bg-[#21252B]/70 backdrop-blur-lg p-6 rounded-xl flex flex-col" data-aos="zoom-in" data-aos-delay="400">
+        <img src="https://cdn.discordapp.com/attachments/1292885368051339347/1361615151266267296/IMG_8465.gif?ex=6811db6d&is=681089ed&hm=2c61199ca2fd2cf1d9271b7cdcd155e7e2d6aff8592d0b72b984c8766e6441ee&" alt="Powerful APIs GIF" class="w-full h-40 object-cover rounded-lg mb-4" />
+        <h3 class="text-2xl font-semibold text-white mb-2">Powerful APIs</h3>
+        <p class="text-gray-400 flex-grow">Direct integration with macOS Accessibility, CoreServices, and ApplicationServices for pro-level control.</p>
+      </div>
+      <div class="bg-[#21252B]/70 backdrop-blur-lg p-6 rounded-xl flex flex-col" data-aos="zoom-in" data-aos-delay="500">
+        <img src="https://cdn.discordapp.com/attachments/1040415733374533675/1333978227827413033/real_link-bubble.gif?ex=68118289&is=68103109&hm=4bb161ed9bd43ea736aaf6938aeb8f48a4fe3d147ba184b39e97d0d90279e400&" alt="Customization GIF" class="w-full h-40 object-cover rounded-lg mb-4" />
+        <h3 class="text-2xl font-semibold text-white mb-2">Customizable</h3>
+        <p class="text-gray-400 flex-grow">Tailor CAST's appearance and behavior to match your workflow with a rich set of preferences.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Showcase -->
+<section id="showcase" class="relative py-20 bg-[#1E2228]">
+  <!-- Background Pattern -->
+  <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:16px_16px]"></div>
+  
+  <!-- Animated Blob Accent -->
+  <div class="absolute top-1/2 left-1/3 w-72 h-72 bg-gradient-to-br from-pink-500 to-purple-500 rounded-full opacity-20 filter blur-2xl animate-blob animation-delay-4000"></div>
+  
+  <div class="relative max-w-7xl mx-auto px-6">
+    <h2 class="text-4xl font-extrabold text-gray-100 text-center mb-12">See It In Action</h2>
+    
+    <!-- Centering container -->
+    <div class="flex justify-center">
+      <div class="w-full max-w-6xl">
+        <div class="aspect-video">
+          <iframe 
+            src="https://www.youtube.com/embed/RDi-XVZ_pKI?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1" 
+            title="CAST Showcase Video" 
+            frameborder="0" 
+            allow="autoplay; encrypted-media" 
+            allowfullscreen 
+            class="rounded-xl w-full h-full scale-105">
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Changelog -->
+<section id="changelog" class="relative py-20">
+  <!-- Background Pattern -->
+  <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[length:16px_16px]"></div>
+  
+  <!-- Animated Blob Accent -->
+  <div class="absolute top-1/4 right-1/3 w-60 h-60 bg-gradient-to-br from-yellow-500 to-red-400 rounded-full opacity-20 filter blur-2xl animate-blob animation-delay-6000"></div>
+
+  <div class="relative max-w-4xl mx-auto px-6">
+    <h2 class="text-4xl font-extrabold text-gray-100 text-center mb-12">Changelog</h2>
+    <div
+    id="changelog-content"
+    class="grid px-6 "
+  ></div>
+  
+  </div>
+</section>
+
+
+<!-- Footer -->
+<footer class="relative py-10 text-center text-gray-500 text-sm">
+  <div class="max-w-7xl mx-auto px-6">
+    <p>&copy; 2025 CAST. All rights reserved.</p>
+    <p>Designed with ❤️ for macOS users.</p>
+  </div>
+</footer>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
