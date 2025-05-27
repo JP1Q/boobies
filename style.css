@@ -63,7 +63,7 @@
   
   /* Mobile Navigation Burger Animation */
   #nav-toggle.open #bar1 {
-    transform: rotate(45deg) translate(5px, 5px);
+    transform: translate(0px, 5px) rotate(45deg) ;
   }
   
   #nav-toggle.open #bar2 {
@@ -71,5 +71,13 @@
   }
   
   #nav-toggle.open #bar3 {
-    transform: rotate(-45deg) translate(5px, -5px);
+    transform: translate(0px, -10px) rotate(-45deg);
   }
+  
+
+
+/* Colour overflow thing for iphones (so the colour isnt white) */
+
+html {
+  background-color: #21252B;
+}
