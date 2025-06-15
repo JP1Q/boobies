@@ -21,91 +21,94 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Fetch the latest release from GitHub
+ * Fetch and parse Appcast XML from Sparkle
  */
-function fetchLatestRelease() {
-  return fetch(
-    'https://api.github.com/repos/SpaghettiiQ/CAST-Releases/releases/latest',
-    {
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28'
-      }
-    }
-  )
-    .then(res => {
-      if (!res.ok) {
-        throw new Error(`GitHub API returned status ${res.status}`);
-      }
-      return res.json();
-    });
+async function fetchAppcast() {
+  const res = await fetch('https://www.cast-for-mac.com/appcast.xml');
+  if (!res.ok) throw new Error(`Appcast returned ${res.status}`);
+  const xmlText = await res.text();
+  const parser = new DOMParser();
+  return parser.parseFromString(xmlText, 'application/xml');
 }
 
 /**
- * Find and wire all download buttons by ID.
- * - Attaches click/download handler
- * - Replaces only the version badge text in the LAST <span>
+ * Extracts the latest release <item> from the XML
+ */
+function parseLatestItem(xmlDoc) {
+  const item = xmlDoc.querySelector('channel > item');
+  if (!item) throw new Error('No <item> in feed');
+
+  const get = tag => item.querySelector(tag)?.textContent?.trim() || '';
+  const getAttr = (selector, attr) => item.querySelector(selector)?.getAttribute(attr) || '';
+  const getNsAttr = (selector, attr, ns) =>
+    item.querySelector(selector)?.getAttributeNS(ns, attr) || '';
+
+  return {
+    tag_name: get('sparkle\\:version') || get('title'),
+    published_at: get('pubDate'),
+    notes_html: item.querySelector('description')?.textContent || '',
+    release_notes_url: get('sparkle\\:releaseNotesLink'), // may not exist in your XML
+    download_url: getAttr('enclosure', 'url'),
+  };
+}
+
+/**
+ * Wire download buttons
  */
 function wireDownloadButtons(release) {
   const downloadIds = ['hero-download', 'download', 'download-phone'];
-  const asset = release.assets.find(a => a.name.endsWith('.dmg'));
-  if (!asset) {
-    console.error(`No DMG asset in release ${release.tag_name}`);
-    return;
-  }
-
   downloadIds.forEach(id => {
     const btn = document.getElementById(id);
-    if (!btn) return; // not in DOM
+    if (!btn) return;
 
-    btn.onclick = () => window.open(asset.browser_download_url, '_blank');
+    btn.onclick = () => window.open(release.download_url, '_blank');
 
     if (id === 'hero-download') {
-      // target the second span (the version badge)
       const versionSpan = btn.querySelector('span:last-child');
-      if (versionSpan) {
-        versionSpan.textContent = release.tag_name;
-      }
+      if (versionSpan) versionSpan.textContent = release.tag_name;
     }
   });
 }
 
 /**
- * Debounced resize listener to:
- * 1) Re‑wire download buttons when the DOM changes  
- * 2) Close mobile nav if switching back to desktop
+ * Setup debounced resize listener
  */
 function setupResizeHandler(release) {
-  let resizeTimeout = null;
+  let timeout = null;
   window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      // re‑attach download handlers
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
       wireDownloadButtons(release);
-
-      // if we're above the md breakpoint, ensure mobile nav is closed
       if (window.innerWidth >= 768) {
-        const mobileMenu = document.getElementById('mobile-menu');
-        const navToggle  = document.getElementById('nav-toggle');
-        if (mobileMenu) mobileMenu.classList.add('hidden');
-        if (navToggle)  navToggle.classList.remove('open');
+        document.getElementById('mobile-menu')?.classList.add('hidden');
+        document.getElementById('nav-toggle')?.classList.remove('open');
       }
     }, 150);
   });
 }
 
 /**
- * Update the textual release notes on the page.
+ * Update release notes from inline HTML or external link
  */
 function updateReleaseNotes(release) {
-  const notesEl = document.getElementById('release-notes');
-  if (notesEl) {
-    notesEl.textContent = release.body || 'No release notes available.';
+  const el = document.getElementById('release-notes');
+  if (!el) return;
+  if (release.release_notes_url) {
+    fetch(release.release_notes_url)
+      .then(res => res.text())
+      .then(html => {
+        el.innerHTML = html;
+      })
+      .catch(() => {
+        el.textContent = 'Failed to load external release notes.';
+      });
+  } else {
+    el.innerHTML = release.notes_html || 'No release notes available.';
   }
 }
 
 /**
- * Renders a simple changelog card into #changelog-content
+ * Render changelog card
  */
 function renderChangelogCard(release) {
   const container = document.getElementById('changelog-content');
@@ -114,33 +117,44 @@ function renderChangelogCard(release) {
   container.innerHTML = '';
 
   const card = document.createElement('div');
-  card.className = [
-    'bg-[#21252B]/70',
-    'backdrop-blur-lg',
-    'p-6',
-    'rounded-2xl',
-    'shadow-lg',
-    'space-y-4'
-  ].join(' ');
+  card.className = 'bg-[#21252B]/70 backdrop-blur-lg p-6 rounded-2xl shadow-lg space-y-4';
 
-  // Header: version + date
   const header = document.createElement('div');
-  const title  = document.createElement('h3');
-  const date   = document.createElement('span');
+  const title = document.createElement('h3');
   title.className = 'text-2xl font-bold text-white';
-  date.className  = 'text-sm text-gray-400';
   title.textContent = release.tag_name;
-  date.textContent  = new Date(release.published_at).toLocaleDateString();
+
+  const date = document.createElement('span');
+  date.className = 'text-sm text-gray-400';
+  date.textContent = new Date(release.published_at).toLocaleDateString();
+
   header.append(title, date);
 
-  // Notes
   const notes = document.createElement('div');
   notes.className = 'text-gray-300 whitespace-pre-wrap';
-  notes.innerHTML = marked.parse(release.body || '');
+  notes.innerHTML = release.notes_html || 'No changelog provided.';
 
   card.append(header, notes);
   container.appendChild(card);
 }
+
+/**
+ * Main logic
+ */
+(async function init() {
+  try {
+    const xml = await fetchAppcast();
+    const latest = parseLatestItem(xml);
+
+    wireDownloadButtons(latest);
+    updateReleaseNotes(latest);
+    renderChangelogCard(latest);
+    setupResizeHandler(latest);
+  } catch (err) {
+    console.error('Error fetching appcast:', err);
+  }
+})();
+
 
 /**
  * Mobile Navigation Toggle
